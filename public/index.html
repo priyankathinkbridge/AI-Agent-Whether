@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Should I Go? — Weather Agent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --sky-deep: #16213e;
+    --sky-mid: #3f5b8b;
+    --sun: #f2b134;
+    --paper: #f6f7fb;
+    --ink: #16213e;
+    --ink-soft: #5b6478;
+    --line: #e1e4ef;
+    --tier-good-bg: #dcf5e3;
+    --tier-good-fg: #1e7a3d;
+    --tier-acceptable-bg: #fdf1d0;
+    --tier-acceptable-fg: #8a6d1a;
+    --tier-not-ideal-bg: #fde3d0;
+    --tier-not-ideal-fg: #a15a1a;
+    --tier-avoid-bg: #fbdada;
+    --tier-avoid-fg: #a3372c;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--paper);
+    font-family: "Inter", system-ui, sans-serif;
+    color: var(--ink);
+    display: flex;
+    justify-content: center;
+    padding: 32px 16px;
+  }
+
+  .app {
+    width: 100%;
+    max-width: 560px;
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 64px);
+  }
+
+  header {
+    background: linear-gradient(135deg, var(--sky-deep), var(--sky-mid));
+    border-radius: 18px 18px 0 0;
+    padding: 22px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  header::after {
+    content: "";
+    position: absolute;
+    right: -20px;
+    top: -20px;
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: var(--sun);
+    opacity: 0.9;
+    box-shadow: 0 0 40px 10px rgba(242, 177, 52, 0.35);
+  }
+
+  header h1 {
+    font-family: "Space Grotesk", sans-serif;
+    font-weight: 700;
+    font-size: 1.5rem;
+    margin: 0 0 4px;
+    color: #fff;
+    position: relative;
+    z-index: 1;
+  }
+
+  header p {
+    margin: 0;
+    color: #c9d3ea;
+    font-size: 0.9rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  #messages {
+    flex: 1;
+    overflow-y: auto;
+    background: #fff;
+    border-left: 1px solid var(--line);
+    border-right: 1px solid var(--line);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .msg {
+    max-width: 82%;
+    padding: 11px 15px;
+    border-radius: 14px;
+    line-height: 1.5;
+    font-size: 0.95rem;
+    white-space: pre-wrap;
+    animation: msg-in 0.15s ease;
+  }
+
+  @keyframes msg-in {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  .msg.user {
+    align-self: flex-end;
+    background: var(--sky-deep);
+    color: #fff;
+    border-bottom-right-radius: 4px;
+  }
+
+  .msg.agent {
+    align-self: flex-start;
+    background: var(--paper);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-bottom-left-radius: 4px;
+  }
+
+  .msg.agent strong {
+    font-weight: 700;
+    color: var(--sky-deep);
+  }
+
+  .msg.pending {
+    align-self: flex-start;
+    color: var(--ink-soft);
+    font-style: italic;
+    font-size: 0.9rem;
+  }
+
+  .msg.error {
+    align-self: flex-start;
+    background: #fdeceb;
+    color: #a3372c;
+    border: 1px solid #f3c8c3;
+  }
+
+  .tier-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-family: "Space Grotesk", sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    margin-bottom: 8px;
+    background: var(--tier-good-bg);
+    color: var(--tier-good-fg);
+  }
+
+  .tier-badge .dot {
+    width: 8px;
+    height: 8px;
+    min-width: 8px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .tier-badge.tier-acceptable { background: var(--tier-acceptable-bg); color: var(--tier-acceptable-fg); }
+  .tier-badge.tier-not-ideal { background: var(--tier-not-ideal-bg); color: var(--tier-not-ideal-fg); }
+  .tier-badge.tier-avoid { background: var(--tier-avoid-bg); color: var(--tier-avoid-fg); }
+
+  form {
+    display: flex;
+    gap: 10px;
+    padding: 16px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-top: none;
+    border-radius: 0 0 18px 18px;
+  }
+
+  input[type="text"] {
+    flex: 1;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 11px 14px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    outline: none;
+    color: var(--ink);
+  }
+
+  input[type="text"]:focus {
+    border-color: var(--sky-mid);
+  }
+
+  button {
+    background: var(--sky-deep);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 0 20px;
+    font-family: "Space Grotesk", sans-serif;
+    font-weight: 500;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  button:hover:not(:disabled) { background: var(--sky-mid); }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+</style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>Should I Go?</h1>
+      <p>Ask about visiting somewhere — I'll check the real forecast first.</p>
+    </header>
+
+    <div id="messages">
+      <!-- <div class="msg agent">Hey! Tell me where and when you're thinking of going, and I'll check if the weather works. e.g. "Is 6pm good for the playground at Baner, Pune?"</div> -->
+    </div>
+
+    <form id="chat-form">
+      <input
+        id="chat-input"
+        type="text"
+        placeholder="I want to visit..."
+        autocomplete="off"
+        required
+      />
+      <button type="submit" id="send-btn">Ask</button>
+    </form>
+  </div>
+
+  <script>
+    const form = document.getElementById("chat-form");
+    const input = document.getElementById("chat-input");
+    const sendBtn = document.getElementById("send-btn");
+    const messages = document.getElementById("messages");
+
+    input.focus();
+
+    const TIER_CLASSES = {
+      excellent: "tier-good",
+      good: "tier-good",
+      acceptable: "tier-acceptable",
+      "not ideal": "tier-not-ideal",
+      avoid: "tier-avoid",
+    };
+
+    function escapeHtml(str) {
+      return str.replace(/[&<>"']/g, (c) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      }[c]));
+    }
+
+    // Only bold — Claude's replies use **text** for emphasis, nothing fancier.
+    // Runs *after* escaping, so the only HTML tags ever present are ours.
+    function markdownBoldToHtml(escapedText) {
+      return escapedText.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+    }
+
+    function addMessage(text, kind) {
+      const el = document.createElement("div");
+      el.className = "msg " + kind;
+      el.textContent = text;
+      messages.appendChild(el);
+      messages.scrollTop = messages.scrollHeight;
+      return el;
+    }
+
+    // Agent replies get a colored tier badge pulled off the first line (e.g.
+    // "Good ✅") plus bold rendering for the rest — everything else still
+    // goes through addMessage() untouched (plain text is safe there).
+    function addAgentMessage(text) {
+      const el = document.createElement("div");
+      el.className = "msg agent";
+
+      const lines = text.split("\n");
+      const tierMatch = lines[0]?.match(/^(Excellent|Good|Acceptable|Not ideal|Avoid)\b\s*(.*)$/i);
+
+      let bodyLines = lines;
+      if (tierMatch) {
+        const [, tierName, rest] = tierMatch;
+        const badge = document.createElement("span");
+        badge.className = "tier-badge " + (TIER_CLASSES[tierName.toLowerCase()] ?? "");
+        badge.innerHTML = `<span class="dot"></span>${escapeHtml(tierName)}${rest ? " " + escapeHtml(rest) : ""}`;
+        el.appendChild(badge);
+        bodyLines = lines.slice(1);
+        if (bodyLines[0] === "") bodyLines = bodyLines.slice(1);
+        if (bodyLines.length > 0) el.appendChild(document.createElement("br"));
+      }
+
+      const body = document.createElement("span");
+      body.innerHTML = markdownBoldToHtml(escapeHtml(bodyLines.join("\n")));
+      el.appendChild(body);
+
+      messages.appendChild(el);
+      messages.scrollTop = messages.scrollHeight;
+      return el;
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const text = input.value.trim();
+      if (!text) return;
+
+      addMessage(text, "user");
+      input.value = "";
+      sendBtn.disabled = true;
+
+      const pending = addMessage("Checking the forecast…", "pending");
+
+      try {
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            message: text,
+            // The server/Claude have no reliable way to know "now" on their
+            // own — send this device's real date/time and zone every turn.
+            clientNow: new Date().toISOString(),
+            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          }),
+        });
+
+        const data = await res.json();
+        pending.remove();
+
+        if (!res.ok) {
+          addMessage(data.error || "Something went wrong.", "error");
+        } else {
+          addAgentMessage(data.reply);
+        }
+      } catch (err) {
+        pending.remove();
+        addMessage("Could not reach the server. Is it running?", "error");
+      } finally {
+        sendBtn.disabled = false;
+        input.focus();
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+{
+  "name": "weather-agent",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/server.ts",
+    "inspect": "npx @modelcontextprotocol/inspector tsx src/weather-server.ts",
+    "inspect:places": "npx @modelcontextprotocol/inspector tsx src/places-server.ts",
+    "inspect:search": "npx @modelcontextprotocol/inspector tsx src/search-server.ts",
+    "test:server": "tsx src/test-server-connection.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.68.0",
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.7.2",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  }
+}
