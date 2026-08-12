@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Weather Visit-Advisor Agent — Tutorial
 
 An AI agent that answers "is it a good time to visit X place?" by checking
@@ -214,3 +215,6 @@ hood.
 - **Answers seem to use the wrong date** — check the browser actually sent
   `clientNow`/`timeZone` (Network tab, `/api/chat` request body); the
   server logs a warning to its console if a request arrives without them.
+=======
+# AI-Agent-Whether
+>>>>>>> 519921e96d2245dc2469bf562b76df4e3dbd300f
