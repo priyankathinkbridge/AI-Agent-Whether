@@ -5,10 +5,13 @@
 // This is also where your ANTHROPIC_API_KEY actually lives (via .env),
 // safely off the client.
 
+// MUST be the first import — it loads .env, and every import below this line
+// is evaluated before any statement in this file runs. See env.ts.
+import "./env.js";
+
 import express from "express";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import "dotenv/config";
 import type Anthropic from "@anthropic-ai/sdk";
 import { initAgent, handleUserMessage } from "./agent.js";
 

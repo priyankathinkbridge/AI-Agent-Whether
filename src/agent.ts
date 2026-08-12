@@ -20,8 +20,19 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// Reads ANTHROPIC_API_KEY from the environment automatically.
-const anthropic = new Anthropic();
+// Built on first use, not at import time. Constructing it here at module level
+// would read ANTHROPIC_API_KEY before the importing module had a chance to
+// load .env — the key gets captured once, so a stale value would stick for the
+// life of the process no matter what .env says.
+let anthropicClient: Anthropic | undefined;
+
+function anthropic(): Anthropic {
+  if (!anthropicClient) {
+    // Reads ANTHROPIC_API_KEY from the environment automatically.
+    anthropicClient = new Anthropic();
+  }
+  return anthropicClient;
+}
 
 const MODEL = "claude-sonnet-5";
 
@@ -167,7 +178,7 @@ export async function handleUserMessage(
 
   const systemPrompt = buildSystemPrompt(clientContext);
 
-  let response = await anthropic.messages.create({
+  let response = await anthropic().messages.create({
     model: MODEL,
     max_tokens: 1024,
     system: systemPrompt,
@@ -224,7 +235,7 @@ export async function handleUserMessage(
 
     history.push({ role: "user", content: toolResults });
 
-    response = await anthropic.messages.create({
+    response = await anthropic().messages.create({
       model: MODEL,
       max_tokens: 1024,
       system: systemPrompt,
